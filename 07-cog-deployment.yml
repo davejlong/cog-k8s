@@ -1,0 +1,54 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: cog
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cog
+        tier: frontend
+    spec:
+      containers:
+        - name: cog
+          image: operable/cog:0.16.2
+          command:
+            - /home/operable/cog/scripts/docker-start
+          env:
+            - name: COG_MQTT_HOST
+              value: 0.0.0.0
+            - name: COG_ALLOW_SELF_REGISTRATION
+              value: "1"
+            - name: COG_API_URL_BASE
+              value: cog.compe.com
+            - name: COG_SERVICE_URL_BASE
+              value: service.cog.compe.com
+            - name: COG_TRIGGER_URL_BASE
+              value: trigger.cog.compe.com
+            - name: COG_SLACK_ENABLED
+              value: "1"
+            - name: SLACK_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cog
+                  key: slack-token
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: cog
+                  key: database-url
+            - name: RELAY_COG_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cog
+                  key: relay-token
+          ports:
+            - name: api
+              containerPort: 4000
+            - name: trigger
+              containerPort: 4001
+            - name: service
+              containerPort: 4002
+            - name: mqtt
+              containerPort: 1883

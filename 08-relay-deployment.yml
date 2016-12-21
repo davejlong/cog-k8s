@@ -1,0 +1,44 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: relay
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cog
+        tier: relay
+    spec:
+      containers:
+        - name: relay
+          image: operable/relay:0.16.1
+          command:
+            - /usr/local/bin/relay
+          securityContext:
+            privileged: true
+          env:
+            - name: RELAY_COG_REFRESH_INTERVAL
+              value: 30s
+            - name: RELAY_DOCKER_CLEAN_INTERVAL
+              value: 1m
+            - name: RELAY_COG_HOST
+              value: cogapi
+            - name: RELAY_DYNAMIC_CONFIG_ROOT
+              value: /tmp/bundle_configs
+            - name: RELAY_MANAGED_DYNAMIC_CONFIG
+              value: '1'
+            - name: RELAY_COG_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cog
+                  key: relay-token
+            - name: RELAY_ID
+              value: 9cb669d9-c2c1-44fd-98e0-4136190dcbef
+          volumeMounts:
+            - name: docker-socket
+              mountPath: /var/run/docker.sock
+      volumes:
+        - name: docker-socket
+          hostPath:
+            path: /var/run/docker.sock
